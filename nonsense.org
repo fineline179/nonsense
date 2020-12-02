@@ -1,0 +1,4 @@
+#+TITLE: Nonsense word amusement classification
+#+STARTUP: showall latexpreview entitiespretty inlineimages
+
+

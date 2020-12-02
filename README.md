@@ -1,0 +1,1 @@
+# Nonsense word amusement classification
