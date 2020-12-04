@@ -1,4 +1,40 @@
 #+TITLE: Nonsense word amusement classification
 #+STARTUP: showall latexpreview entitiespretty inlineimages
 
+* <2020-12-01 Tue>
+
+** Classification methods
+Since my inputs are small (3 or 4 chars), how can I setup a simple ML algorithm that just does a linear classifier? Do I need to extract some basic feature vectors first?
+
+*** N-gram
+*** Representation learning + linear classifier
+*** LSTM (like textgenrnn)
+- Emojifier example in deeplearning.ai course 5 does sentiment classification on sentences. Try converting to working on just words.
+*** Character-level convnet [[zotero://select/items/1_IBSDWNYP][Zhang, X., Zhao, J. & LeCun, Y. (2016) Character-level Convolutional Networks for Text Classification]]
+
+
+*** stuff from NLTK book (older methods)
+http://www.nltk.org/book/ch06.html
+
+** Misc
+- [ ] Investigate utility of [[https://hackernoon.com/chars2vec-character-based-language-model-for-handling-real-world-texts-with-spelling-errors-and-a3e4053a147d][Chars2Vec]]
+
+** Papers
+- [[zotero://select/items/1_P3D984VK][Badjatiya, P. et al. (2017) Deep Learning for Hate Speech Detection in Tweets]]
+  - code in ~extra_code/twitter-hatespeech~. Good functional python scripting style!
+
+** Keras RNN model
+- use ~binary_crossentropy~ loss
+- can /learn/ embeddings that are tuned towards the classification task
+
+** Tensorflow tutorial on imbalanced class data [[https://www.tensorflow.org/tutorials/structured_data/imbalanced_data][link]]
+
+* <2020-12-04 Fri>
+
+** Karpathy's Recipe for Training neural networks blog post
+[[http://karpathy.github.io/2019/04/25/recipe/#2-set-up-the-end-to-end-trainingevaluation-skeleton--get-dumb-baselines][link]]
+
+** Papers
+- [[zotero://select/items/1_38JECJP3][Kim, Y. et al. (2015) Character-Aware Neural Language Models]]
+  - [ ] Look at this to see how a char-CNN can learn the relevant n-grams
 

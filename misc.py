@@ -1,22 +1,30 @@
+# Generate random words and write to file
+
 #%%
+import csv
+import os
 from itertools import product
 from string import ascii_lowercase
+import random
+random.seed(1)
+
+WORD_LEN = 4
+OUTPUT_PATH = '/home/fineline/projects/nonsense/data'
+
+words = ["".join(x) for x in list(product(list(ascii_lowercase), repeat=WORD_LEN))]
+random.shuffle(words)
 
 #%%
-def gen_letter_combinations(word_len=3):
-  """Returns all words of length 'word_len'
+words_to_output = words[10000:15000]
 
-  Args:
-    word_len(int): length of word (default 3)
-
-  Returns:
-    List of strings of all letter combinations
-
-  """
-
-  return ["".join(x) for x in list(product(list(ascii_lowercase), repeat=word_len))]
+#%%
+def output_words(filename, words):
+  with open(os.path.join(OUTPUT_PATH, filename), 'w') as f:
+    for word in words:
+      f.write(word + '\n')
 
 
-words = gen_letter_combinations(3)
+#%%
+output_words('words_10000_15000.csv', words_to_output)
 
 

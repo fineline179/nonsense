@@ -1,6 +1,8 @@
 *.so
 *.pyc
 
+extra_code/
+logs/
 .idea/
 auto/
 ltximg/
