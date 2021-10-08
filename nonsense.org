@@ -29,12 +29,51 @@ http://www.nltk.org/book/ch06.html
 
 ** Tensorflow tutorial on imbalanced class data [[https://www.tensorflow.org/tutorials/structured_data/imbalanced_data][link]]
 
+
 * <2020-12-04 Fri>
 
-** Karpathy's Recipe for Training neural networks blog post
-[[http://karpathy.github.io/2019/04/25/recipe/#2-set-up-the-end-to-end-trainingevaluation-skeleton--get-dumb-baselines][link]]
+** Karpathy's Recipe for Training neural networks blog post [[http://karpathy.github.io/2019/04/25/recipe/#2-set-up-the-end-to-end-trainingevaluation-skeleton--get-dumb-baselines][link]]
+- Used note in here on initializing bias of final layer of network
+
 
 ** Papers
 - [[zotero://select/items/1_38JECJP3][Kim, Y. et al. (2015) Character-Aware Neural Language Models]]
   - [ ] Look at this to see how a char-CNN can learn the relevant n-grams
+
+
+* <2020-12-05 Sat>
+
+** Misc
+*** Text classification workflow and suggestions in this [[https://developers.google.com/machine-learning/guides/text-classification][Google guide]].
+- [ ] try sepCNN. Code in section 4 of guide.
+
+*** Tensorflow Text gen RNN [[https://www.tensorflow.org/tutorials/text/text_generation][tutorial]] puts embedding layer on CHARACTERS.
+- [ ] does textgenrnn do this?
+- [ ] try adding this to model.
+
+*** Bayesian optimization in scikit learn: scikit-optimize
+- ~BayesSearchCV~ does Bayes opt with interface similar to ~GridSearchCV~
+
+
+** TODOs
+- [X] Review F-score
+- [X] Review AUC
+- [ ] understand/implement character n-grams
+- [ ] look at Vowpal Wabbit
+- [ ] look up 'active learning' (is this the thing that tells you what examples to label?)
+  - blog post [[https://medium.com/towards-artificial-intelligence/how-to-use-active-learning-to-iteratively-improve-your-machine-learning-models-1c6164bdab99][link]]
+  - will use pool-based sampling
+  - Active learning survery: [[zotero://select/items/1_7QUP3Z7Q][Settles, B. (2010) Active Learning Literature Survey]]
+  - Active learning review blog post series: [[https://dsgissin.github.io/DiscriminativeActiveLearning/][link]]
+  - 2007 paper on active learning for imbalanced classes: [[zotero://select/items/1_23FNCIEQ][Ertekin, S. et al. (2007) Learning on the border: active learning in imbalanced data classification]]
+- [ ] look at using sklearn tree-based methods that use crossval methods that optimize on AUROC (which solves class imbalance problem)
+
+
+* <2020-12-09 Wed>
+
+** TODO Do simple classification on simplest 2 char inputs
+
+** Input representation for MLP/Log reg
+If each char is encoded via one-hot rep of dim 26, then an \( n \) character word has those \( n \) 26 dim reps concatentated. eg 4 char input to MLP is of size 26*4 = 104.
+
 

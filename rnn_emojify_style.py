@@ -4,42 +4,47 @@ import csv
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedKFold
 
 from sklearn.metrics import confusion_matrix, plot_confusion_matrix
 
 import tensorflow as tf
+from tensorboard.plugins.hparams import api as hp
 from tensorflow import keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import (Dense, Input, Dropout, LSTM, Activation,
-                                     SimpleRNN, Bidirectional)
+from tensorflow.keras.layers import (
+  Dense,
+  Input,
+  Dropout,
+  LSTM,
+  Activation,
+  SimpleRNN,
+  Bidirectional,
+)
 from tensorflow.keras.metrics import BinaryAccuracy, Recall, Precision
 
-INPUT_PATH = '/home/fineline/projects/nonsense/data'
+from utils.import_data import import_word_data
+
+INPUT_PATH = "/home/fineline/projects/nonsense/data"
 
 
 #%% Input data
-file_list = ['words_labeled_0_1000.csv',
-             'words_labeled_2000_3000.csv',
-             'words_labeled_3000_4000.csv']
+file_list = [
+  "words_labeled_0_1000.csv",
+  "words_labeled_2000_3000.csv",
+  "words_labeled_3000_4000.csv",
+]
 
-def read_data(filename):
-  with open(os.path.join(INPUT_PATH, filename), 'r') as f:
-    data = [row for row in csv.reader(f, delimiter=',')]
-    X, Y = [list(x) for x in zip(*data)]  # transpose
-    Y = [int(y) for y in Y]     # convert targets from string to int
-    return X, Y
-
-X, Y = [], []
-for file in file_list:
-  Xtemp, Ytemp = read_data(file)
-  X.extend(Xtemp)
-  Y.extend(Ytemp)
+X, Y = import_word_data(INPUT_PATH, file_list)
 
 print(len(X))
 
+skf = StratifiedKFold(n_splits=5)
+
 TEST_FRAC = 0.2
 X_tr, X_ts, Y_tr, Y_ts = train_test_split(X, Y, test_size=TEST_FRAC, shuffle=False)
+# X_tr, X_ts, Y_tr, Y_ts = train_test_split(X, Y, test_size=TEST_FRAC, random_state=42,
+#                                           shuffle=True, stratify=Y)
 Y_tr, Y_ts = np.asarray(Y_tr), np.asarray(Y_ts)
 
 wordLen = len(X_tr[0])
@@ -57,19 +62,19 @@ pos_tr = np.count_nonzero(Y_tr == 1)
 
 
 #%%
-metrics = [Precision(name='precision'),
-           Recall(name='recall'),
-           BinaryAccuracy(name='accuracy')]
+metrics = [
+  Precision(name="precision"),
+  Recall(name="recall"),
+  BinaryAccuracy(name="accuracy"),
+]
 
-def RNNModel(input_shape,
-             bidirectional=False,
-             output_bias=None,
-             lr=0.001):
+
+def RNNModel(input_shape, metrics, bidirectional=False, output_bias=None, lr=0.001):
 
   if output_bias is not None:
-    output_bias = tf.keras.initializers.Constant(output_bias)
+    output_bi = tf.keras.initializers.Constant(output_bias)
 
-  word_indices = Input(input_shape, dtype='int32')
+  word_indices = Input(input_shape, dtype="int32")
   one_hots = tf.one_hot(word_indices, depth=26)
 
   if bidirectional:
@@ -85,13 +90,15 @@ def RNNModel(input_shape,
     X = SimpleRNN(128)(X)
 
   X = Dropout(0.5)(X)
-  X = Dense(1, activation='sigmoid', bias_initializer=output_bias)(X)
+  X = Dense(1, activation="sigmoid", bias_initializer=output_bi)(X)
 
   model = Model(inputs=word_indices, outputs=X)
 
-  model.compile(loss='binary_crossentropy',
-                optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
-                metrics=metrics)
+  model.compile(
+    loss="binary_crossentropy",
+    optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
+    metrics=metrics,
+  )
 
   return model
 
@@ -104,23 +111,30 @@ BATCH_SIZE = 1024
 CLASS_WEIGHT = False
 
 # set initial output bias to account for class imbalance
-initial_bias = np.log([pos_tr/neg_tr])
-model = RNNModel((wordLen,),
-                 bidirectional=BIDIRECTIONAL,
-                 output_bias=initial_bias,
-                 lr=LR)
+initial_bias = np.log([pos_tr / neg_tr])
+model = RNNModel(
+  input_shape=(wordLen,),
+  metrics=metrics,
+  bidirectional=BIDIRECTIONAL,
+  output_bias=initial_bias,
+  lr=LR,
+)
 model.summary()
 
 # tensorboard setup
 # log string
-log_string = (('BIDIR_' if BIDIRECTIONAL else 'RNN_') +
-              ('LR-' + str(LR) + '_') + ('EP-' + str(EPOCHS) + '_') +
-              ('BS-' + str(BATCH_SIZE) + '_') +
-              ('CW' if CLASS_WEIGHT else '_') + '_2ndRUN')
+log_string = (
+  datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+  + "_"
+  + ("BIDIR_" if BIDIRECTIONAL else "RNN_")
+  + ("LR-" + str(LR) + "_")
+  + ("EP-" + str(EPOCHS) + "_")
+  + ("BS-" + str(BATCH_SIZE) + "_")
+  + ("CW" if CLASS_WEIGHT else "_")
+)
 
 log_dir = "logs/fit/" + log_string
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
-                                                      histogram_freq=1)
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 #
 tf.random.set_seed(1)
@@ -129,11 +143,16 @@ neg_weight = (1 / neg_tr) * len(Y_tr) / 2.0
 pos_weight = (1 / pos_tr) * len(Y_tr) / 2.0
 class_weight = {0: neg_weight, 1: pos_weight} if CLASS_WEIGHT else None
 
-model.fit(X_tr_indices, Y_tr, epochs=EPOCHS, batch_size=BATCH_SIZE,
-          shuffle=True,
-          validation_data=(X_ts_indices, Y_ts),
-          callbacks=[tensorboard_callback],
-          class_weight=class_weight)
+model.fit(
+  X_tr_indices,
+  Y_tr,
+  epochs=EPOCHS,
+  batch_size=BATCH_SIZE,
+  shuffle=True,
+  validation_data=(X_ts_indices, Y_ts),
+  callbacks=[tensorboard_callback],
+  class_weight=class_weight,
+)
 
 
 #%%
@@ -147,31 +166,39 @@ confusion_matrix(Y_ts, pred_ts)
 
 #%%
 def print_res(type):
-  assert type in ['TP', 'FP', 'FN']
+  assert type in ["TP", "FP", "FN"]
   count = 1
   cond = None
   for i in range(len(X_ts)):
-    if type == 'TP':
+    if type == "TP":
       cond = pred_ts[i] == 1 and Y_ts[i] == 1
-    elif type == 'FP':
+    elif type == "FP":
       cond = pred_ts[i] == 1 and Y_ts[i] == 0
-    elif type == 'FN':
+    elif type == "FN":
       cond = pred_ts[i] == 0 and Y_ts[i] == 1
 
     if cond:
-      print(str(count) + ' Expected label:' + str(Y_ts[i]) + ' prediction: ' +
-            X_ts[i] + ' ' + str(pred_ts[i]))
+      print(
+        str(count)
+        + " Expected label:"
+        + str(Y_ts[i])
+        + " prediction: "
+        + X_ts[i]
+        + " "
+        + str(pred_ts[i])
+      )
       count += 1
 
-  print('\n')
+  print("\n")
 
-print_res('TP')
-print_res('FP')
-print_res('FN')
+
+print_res("TP")
+print_res("FP")
+print_res("FN")
 
 
 #%% load in more test cases
-with open(os.path.join(INPUT_PATH, 'words_10000_15000.csv'), 'r') as f:
+with open(os.path.join(INPUT_PATH, "words_10000_15000.csv"), "r") as f:
   data = [x.strip() for x in f.readlines()]
 
 
@@ -185,6 +212,5 @@ out_num = 1
 for i in range(len(X_ts_2)):
   x = X_ts_2_indices
   if pred_ts_2[i] == 1:
-    print(str(out_num) + ' prediction: ' + X_ts_2[i] + ' ' + str(pred_ts_2[i]))
+    print(str(out_num) + " prediction: " + X_ts_2[i] + " " + str(pred_ts_2[i]))
     out_num += 1
-

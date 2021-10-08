@@ -4,6 +4,7 @@ import os
 import glob
 import csv
 
+
 def read_csv(filename):
   word = []
   type = []
@@ -19,4 +20,3 @@ def read_csv(filename):
   Y = np.asarray(type, dtype=int)
 
   return X, Y
-
