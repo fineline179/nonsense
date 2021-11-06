@@ -77,3 +77,9 @@ http://www.nltk.org/book/ch06.html
 If each char is encoded via one-hot rep of dim 26, then an \( n \) character word has those \( n \) 26 dim reps concatentated. eg 4 char input to MLP is of size 26*4 = 104.
 
 
+* <2021-10-08 Fri>
+
+** TODO Fix Tensorflow errors on trying to run
+
+
+
